@@ -58,18 +58,15 @@ class LoginSerializer(serializers.Serializer):
     def get_auth_user_using_allauth(self, username, email, password):
         from allauth.account import app_settings as allauth_account_settings
 
+        using_login_methods = hasattr(allauth_account_settings, "LOGIN_METHODS")
         # Authentication through email
-        if (getattr(allauth_account_settings, "LOGIN_METHODS", None) == {
-            allauth_account_settings.AuthenticationMethod.EMAIL}
-                or allauth_account_settings.AUTHENTICATION_METHOD == allauth_account_settings.AuthenticationMethod.EMAIL
-        ):
+        if (using_login_methods and allauth_account_settings.LOGIN_METHODS == {"email"}) or \
+            (not using_login_methods and allauth_account_settings.AUTHENTICATION_METHOD == "email"):
             return self._validate_email(email, password)
 
         # Authentication through username
-        if (getattr(allauth_account_settings, "LOGIN_METHODS", None) == {
-            allauth_account_settings.AuthenticationMethod.USERNAME}
-                or allauth_account_settings.AUTHENTICATION_METHOD == allauth_account_settings.AuthenticationMethod.USERNAME
-        ):
+        if (using_login_methods and allauth_account_settings.LOGIN_METHODS == {"username"}) or \
+            (not using_login_methods and allauth_account_settings.AUTHENTICATION_METHOD == "username"):
             return self._validate_username(username, password)
 
         # Authentication through either username or email
